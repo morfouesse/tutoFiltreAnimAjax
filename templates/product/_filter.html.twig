@@ -1,0 +1,37 @@
+{#ne pas metttre de div qui enferme le form start sinon probleme ajax#}
+    {{ form_start(form, {attr: {class: 'filter js-filter-form'}}) }}
+      
+    {# spinner: pour un chargement, status pour indiquez que c'est un chargement #}
+    <div class="spinner-border js-loading"  role="status" aria-hidden="true" style="display:  none">
+        <span class="sr-only">
+            Loading...
+        </span>
+    </div>
+    
+    {{ form_row(form.q) }}
+
+    <div class="spaceBot">
+        <h4>Catégories</h4>
+            {{ form_widget(form.categories) }}
+    </div>
+       
+     
+    <h4>Prix</h4>
+    <div class="row">
+        <div class="col-md-6">
+            {{ form_row(form.min) }}
+        </div>
+        <div class="col-md-6">
+            {{ form_row(form.max) }}
+        </div>
+    </div>
+    <div id="priceSlider"
+     data-min="{{ min }}" data-max="{{ max }}"
+     class="spaceBot"></div>
+
+    <div class="spaceBot">
+    <h4>Promotions</h4>
+    {{ form_row(form.promo) }}
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+{{ form_end(form) }}

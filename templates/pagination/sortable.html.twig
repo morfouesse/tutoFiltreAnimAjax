@@ -1,0 +1,14 @@
+<a{% for attr, value  in options | merge({class: 'btn btn-primary'}) %} {{ attr }}="{{ value }}"{% endfor %}>
+    <span class="ml-1 float-right">
+        {% if sorted %}
+            {% if direction == 'desc' %}
+            <i class="fas fa-sort-amount-down-alt"></i>
+            {% else %}
+            <i class="fas fa-sort-amount-up"></i>
+            {% endif %}
+        {% else %}
+        <i class="fas fa-sort-alt"></i>
+        {% endif %}
+    </span>
+    {{ title }}
+</a>

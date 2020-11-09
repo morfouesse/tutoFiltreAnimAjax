@@ -1,0 +1,18 @@
+#grace à Alice#
+#générer des nom et valeurs au hasard#
+
+App\Entity\Product:
+  product_{1..20}:
+    name: <productName()>
+    price: <numberBetween(50, 40000)>
+    description: <text(100)>
+    #apres numberBetween  il s'agit du format des cards bootstrap#
+    image: http://picsum.photos/id/<numberBetween(400,800)>/290/180
+    categories: '<numberBetween(1,5)>x @category_*'
+    #10% ont 1 et le reste a 0
+    promo: '10%? 1 : 0'
+    content: "a"
+
+App\Entity\Category:
+  category_{1..10}:
+    name: <creature()>
