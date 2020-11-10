@@ -87,10 +87,11 @@ export default class Filter {
     {
         //on fait apparaitre un chargement
         this.showLoader();
+        //permet de gérer le probleme de rafraichisemenr de la page
+        const params = new URLSearchParams(url.split('?')[1] || '');
+        params.set('ajax', 1);
         //fetch methode async
-        //permet différencier l'url en fonction d'une requete ajax ou autre
-        const ajaxUrl = url + '&ajax=1';
-        const response = await fetch( ajaxUrl,
+        const response = await fetch(url.split('?')[0] + '?' + params.toString(),
             {//permet d'expliquer au framework que l'on fait un appel en ajax
                 headers:
                 {
@@ -107,8 +108,10 @@ export default class Filter {
                 this.flipContent(data.content);
                 this.sorting.innerHTML = data.sorting;
                 this.pagination.innerHTML = data.pagination;
+                //on supprime la requete ajax pour pas crée d'erreur
+                params.delete('ajax');
                 //permet de changer l'url normalement apres une requete ajax
-                history.replaceState({},'',url);
+                history.replaceState({},'',url.split('?')[0] + '?' + params.toString());
             }else{
                 console.error(response);
             }
