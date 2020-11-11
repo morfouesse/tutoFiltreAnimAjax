@@ -4,6 +4,8 @@ import {Flipper, spring} from 'flip-toolkit'
  * @property {HTMLElement} content
  * @property {HTMLElement} sorting
  * @property {HTMLFormElement} form
+ * @property {number} page
+ * @property {boolean} moreNav
  */
 export default class Filter {
 
@@ -22,6 +24,8 @@ export default class Filter {
         this.content = element.querySelector('.js-filter-content');
         this.sorting = element.querySelector('.js-filter-sorting');
         this.form = element.querySelector('.js-filter-form');
+        this.page = parseInt(new URLSearchParams(window.location.search).get('page') || 1);
+        this.moreNav = this.page === 1;
         this.bindEvents()
     }
 
@@ -45,9 +49,22 @@ export default class Filter {
             }
                        
         };
-        this.sorting.addEventListener('click', aClickListener);
+        this.sorting.addEventListener('click', e =>
+        {//quand on reorganise le prix on revient à la page 1
+            aClickListener(e);
+            this.page = 1;
+        });
         
-        this.pagination.addEventListener('click', aClickListener);
+        if(this.moreNav)
+        {
+            this.pagination.innerHTML ='<button class="btn btn-primary">Voir plus</button>'
+            this.pagination.querySelector('button').addEventListener('click', this.loadMore.bind(this));
+        }
+        else
+        {
+            this.pagination.addEventListener('click', aClickListener);
+        }
+        
         //on gere les catégories avec les checkbox et le  prix avec un event qui ecoute le changement
         this.form.querySelectorAll('input').forEach( input =>
         {
@@ -62,10 +79,27 @@ export default class Filter {
                        
     }
 
+    async loadMore()
+    {
+        const button = this.pagination.querySelector('button');
+       //on désactive le bouton
+        button.setAttribute('disabled', 'disabled');
+        this.page++;
+        //nouvelle url car nouvelle page
+        const url = new URL(window.location.href);
+        //new parametre
+        const params = new URLSearchParams(url.search);
+        params.set('page', this.page);
+        //l'url par rapport à la nouvelle page
+        await this.loadUrl(url.pathname + '?' + params.toString(), true);
+        button.removeAttribute('disabled');
+    }
 
     //permet de charger ce que l'on  veut faire dans le form
     async loadForm()
-    {// on convertit les données avec formData
+    {
+        this.page = 1;
+        // on convertit les données avec formData
         const data = new FormData(this.form);
         // on convertit ces données en URL en prenant l'attribut action du form en html
         // ou on prend l'url courant
@@ -83,7 +117,7 @@ export default class Filter {
     }
 
     //permet de charger les url
-    async loadUrl(url)
+    async loadUrl(url, append = false)
     {
         //on fait apparaitre un chargement
         this.showLoader();
@@ -105,9 +139,22 @@ export default class Filter {
                 //on met les données dans nos variables locales
                 // permet de mettre à jour les url
                 //on appel flip content pour les animations de chargements
-                this.flipContent(data.content);
+                this.flipContent(data.content, append);
                 this.sorting.innerHTML = data.sorting;
-                this.pagination.innerHTML = data.pagination;
+                if(!this.moreNav)
+                {
+                    this.pagination.innerHTML = data.pagination;
+                }
+                //si le nombre de page à le nombre de page max
+                else if(this.page === data.pages)
+                {//on enleve l'affichage
+                    this.pagination.style.display = 'none';
+                }//si on a augmenter le nombre de page apres, le bouton doit réapparaitre
+                else
+                {
+                    this.pagination.style.display = null;
+                }
+                this.updatePrices(data);
                 //on supprime la requete ajax pour pas crée d'erreur
                 params.delete('ajax');
                 //permet de changer l'url normalement apres une requete ajax
@@ -119,11 +166,30 @@ export default class Filter {
             this.hideLoader();
     }
 
+    updatePrices({min, max})
+    {
+        const slider = document.getElementById('priceSlider');
+
+        if(slider === null)
+        {
+            return;
+        }
+        slider.noUiSlider.updateOptions(
+            {
+                range: 
+                {
+                    min: [min],
+                    max: [max]
+                }
+            }
+        );
+    }
+
     /**
      * remplace les éléments de la grille avec un effet d'animation flip
      * @param {string} content
      */
-    flipContent(content)
+    flipContent(content, append)
     {
         const springOptions = 'gentle'
         //anim pour donner un coté transparent et de mouvement au élément enlevé
@@ -179,7 +245,15 @@ export default class Filter {
     })
         //on enregiste la pposition des element positionés
         flipper.recordBeforeUpdate();
-        this.content.innerHTML = content;
+        //on ajoute le contenu en plus des produits
+        if(append)
+        {
+            this.content.innerHTML += content;
+        }
+        else
+        {
+            this.content.innerHTML = content;
+        }
 
         this.content.children.forEach(element => {
             flipper.addFlipped({

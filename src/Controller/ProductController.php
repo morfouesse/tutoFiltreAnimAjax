@@ -35,7 +35,11 @@ class ProductController extends AbstractController
                 //permet que les changement fait avec ajax soit changer aussi dans la vue
                 'content' => $this->renderView('product/_products.html.twig',['products' => $products]),
                 'sorting' => $this->renderView('product/_sorting.html.twig',['products' => $products]),
-                'pagination' => $this->renderView('product/_pagination.html.twig',['products' => $products])
+                'pagination' => $this->renderView('product/_pagination.html.twig',['products' => $products]),
+                //nous donnes le nombre de pages par produits affichés
+                'pages' => ceil($products->getTotalItemCount()/ $products->getItemNumberPerPage()),
+                'min' => $min,
+                'max' => $max
             ]);
         }
         return $this->render('product/index.html.twig', [
